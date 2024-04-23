@@ -17,7 +17,7 @@ app = FastAPI()
 
 
 
-class post(BaseModel):
+class Post(BaseModel):
     title: str
     content: str
     published: bool = True
@@ -68,12 +68,12 @@ def test_posts(db: Session = Depends(get_db)):
 def get_posts(db: Session = Depends(get_db)):
     # posts = cursor.execute("""SELECT * FROM posts """)
     # posts = cursor.fetchall()
-    posts = db.query(models.post).all()
+    posts = db.query(models.Post).all()
     return {"data": posts}  
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(post: post, db: Session = Depends(get_db)):
+def create_posts(post: Post, db: Session = Depends(get_db)):
     # cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING 
     #  * """,
     #                 (post.title, post.content, post.published))
@@ -81,7 +81,7 @@ def create_posts(post: post, db: Session = Depends(get_db)):
 
     # conn.commit()
     
-    new_post = models.post(**post.dict())
+    new_post = models.Post(**post.dict())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -96,7 +96,7 @@ def create_posts(post: post, db: Session = Depends(get_db)):
 def get_post(id: int, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * from posts WHERE id = %s""",(str(id)))
     # post = cursor.fetchone()
-    post = db.query(models.post).filter(models.post.id == id).first()
+    post = db.query(models.Post).filter(models.Post.id == id).first()
    
    
     if not post:
@@ -111,9 +111,9 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     #     """DELETE FROM posts WHERE id = %s returning *""",(str(id),))
     # deleted_post = cursor.fetchone()
     # conn.commit()
-    post = db.query(models.post).filter(models.post.id == id)
+    post = db.query(models.Post).filter(models.Post.id == id)
    
-
+ 
     if post.first()== None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {id} does not exist")
@@ -125,14 +125,14 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/posts/{id}")
-def update_post(id: int, post: post, db: Session = Depends(get_db)):
+def update_post(id: int, updated_post: Post, db: Session = Depends(get_db)):
 
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s  WHERE id = %s
     # RETURNING *""",
     #                (post.title, post.content, post.published, str(id)))
     # updated_post = cursor.fetchone()
     # conn.commit()
-    post_query = db.query(models.post).filter(models.post.id == id)
+    post_query = db.query(models.Post).filter(models.Post.id == id)
 
     post = post_query.first()   
 
@@ -140,7 +140,7 @@ def update_post(id: int, post: post, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {id} does not exist")
     
-    post_query.update(post.dict(), synchronize_session=False)
+    post_query.update(updated_post.dict(), synchronize_session=False)
                        
     db.commit()
     

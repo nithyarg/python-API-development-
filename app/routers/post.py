@@ -1,24 +1,18 @@
-
-my_posts= [{"title" :"title of post 1","content": "content of post 1", "id":1},
-                {"title" : "favorite foods", "content": "I like pizza","id":2}]
-
-def find_post(id):
-    for p in my_posts:
-        if p["id"] == id:
-            return p
- 
- 
-def find_index_post(id):
-    for i, p in enumerate(my_posts):
-        if p['id'] == id:
-            return i 
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello World"}  
+from fastapi import FastAPI, Response, status, HTTPException, Depends,APIRouter
+from sqlalchemy.orm import Session
+from typing import List
+from ..import models, schemas 
+from ..database import get_db
 
 
-@app.get("/posts", response_model= List[schemas.Post])
+router = APIRouter(
+    prefix="/posts",
+    tags=['Post']
+)
+
+
+
+@router.get("/", response_model= List[schemas.Post])
 def get_posts(db: Session = Depends(get_db)):
     # posts = cursor.execute("""SELECT * FROM posts """)
     # posts = cursor.fetchall()
@@ -26,7 +20,7 @@ def get_posts(db: Session = Depends(get_db)):
     return posts 
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     # cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING 
     #  * """,
@@ -46,7 +40,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
 
 
  
-@app.get("/posts/{id}", response_model=schemas.Post)
+@router.get("/{id}", response_model=schemas.Post)
 def get_post(id: int, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * from posts WHERE id = %s""",(str(id)))
     # post = cursor.fetchone()
@@ -58,7 +52,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
                             detail=f"post with id: {id} was not found")
     return post 
 
-@app.delete("/posts/{id}",status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)): 
 
     # cursor.execute(
@@ -78,7 +72,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT) 
 
 
-@app.put("/posts/{id}", response_model =schemas.Post)
+@router.put("/{id}", response_model =schemas.Post)
 def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends(get_db)):
 
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s  WHERE id = %s
@@ -101,21 +95,9 @@ def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends
     return  post_query.first() 
 
 
-@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
-def create_user( user: schemas.UserCreate, db: Session = Depends(get_db)): 
 
-    # hash the password - user.password
-    hashed_password = utils.hash(user.password)
-    user.password = hashed_password
-
-    new_user = models.User(**user.dict())
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return new_user 
+    
 
 
-@app.get('/users/{id}', reponse_model=schemas.UserOut)
-def get_user(id: int, db:Session = Depends(get_db), ):
-    user=db.query(models.User).filter(models.User.id == id).first()
+
+    

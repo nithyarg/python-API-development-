@@ -9,7 +9,7 @@ from psycopg2.extras import RealDictCursor
 import time 
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.functions import mode
-from . import models, oauth2, schemas, utils
+from .import models, oauth2, schemas, utils
 from .database import engine, get_db
 from .routers import post, user, auth
 
